@@ -3,6 +3,10 @@
 
 Bipartite::Bipartite(const Graph &graph) {
     this->graph = new ColoredGraph(graph);
+    isBipartite = true;
+    for (int i = 1; i <= graph.getVertexCount(); i++) {
+        dfs(i, GREEN);
+    }
 }
 
 Bipartite::~Bipartite() {

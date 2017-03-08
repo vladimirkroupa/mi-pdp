@@ -15,11 +15,11 @@ public:
     void solve();
 
 private:
-    std::stack<Graph> *stack;
+    std::stack<Graph *> *stack;
     Graph *incumbent;
     int incumbentObjective;
 
-    void setIncumbent(Graph &graph);
+    void setIncumbent(Graph *graph);
 };
 
 
