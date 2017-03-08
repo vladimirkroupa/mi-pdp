@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include "Graph.h"
+#include "Solver.h"
 
 Graph *createGraph(char *filename) {
     FILE *file = fopen(filename, (const char *) "r");
@@ -41,5 +42,14 @@ Graph *createGraph(char *filename) {
 
 
 int main() {
-    Graph* graph = createGraph()
+    Graph *graph = createGraph("../graph10_5.txt");
+    Solver *solver = new Solver(*graph);
+    solver->solve();
+    Graph *solution = solver->getSolution();
+    if (solution != NULL) {
+        std::cout << "Result: " << solution->getEdgeCount() << std::endl;
+    } else {
+        std::cout << "No solution." << std::endl;
+    }
+
 }

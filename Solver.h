@@ -8,7 +8,7 @@ class Solver {
 public:
     Solver(Graph &problem);
 
-    virtual ~DFSSolver();
+    virtual ~Solver();
 
     Graph *getSolution() const;
 

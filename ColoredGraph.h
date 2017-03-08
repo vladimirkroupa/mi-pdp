@@ -8,7 +8,7 @@
 class ColoredGraph : public Graph {
 
 public:
-    ColoredGraph(const Graph& graph);
+    ColoredGraph(const Graph &graph);
     virtual ~ColoredGraph();
     bool hasColor(int vertex) const;
     Color getColor(int vertex) const;
@@ -16,7 +16,7 @@ public:
     bool allColored() const;
 
 private:
-    Color colors[];
+    Color *colors;
 };
 
 

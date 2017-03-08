@@ -8,7 +8,7 @@ Solver::Solver(Graph &problem) {
     stack->push(problem);
 }
 
-Solver::~DFSSolver() {
+Solver::~Solver() {
     delete stack;
     delete incumbent;
 }
@@ -23,11 +23,17 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
+    int printSkip = 0;
     while (!stack->empty()) {
         Graph g = stack->top();
         stack->pop();
 
-        std::cout << stack->size() << " / " << g.getEdgeCount() << " / max: " << incumbentObjective;
+        if (printSkip == 1000) {
+            std::cout << "stack size: " << stack->size() << " / edge count: " << g.getEdgeCount() << " / max: "
+                      << incumbentObjective << std::endl;
+        } else {
+            printSkip++;
+        }
 
         if (g.isBipartite()) {
             setIncumbent(g);
