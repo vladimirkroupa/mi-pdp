@@ -15,7 +15,6 @@ public:
     void removeEdge(int vertex1, int vertex2);
     void removeEdge(int edgeNo);
     void removeNextEdge();
-    bool isBipartite() const;
 
     std::vector<int> * getAdjacentNodes(int vertex) const;
     //friend std::ostream & operator <<(std::ostream & os, const Graph & graph);

@@ -3,16 +3,20 @@
 
 #include "Color.h"
 #include "Graph.h"
-#include "ColoredGraph.h"
 
 class Bipartite {
 private:
-    ColoredGraph * graph;
+    Graph &graph;
+    Color *colors;
 
     void dfs(int node, Color color);
     Color otherColor(Color color);
+    bool hasColor(int vertex) const;
+    Color getColor(int vertex) const;
+    void setColor(int vertex, Color color);
 public:
-    Bipartite(const Graph& graph);
+    Bipartite(Graph & _graph);
+
     ~Bipartite();
     bool isBipartite;
 };

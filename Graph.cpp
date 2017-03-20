@@ -25,9 +25,9 @@ Graph::Graph(const Graph& graph) {
 
 Graph::~Graph() {
     for (int i = 0; i < matrixSize; i++) {
-        delete [] adjacencyMatrix[i];
+        delete[] adjacencyMatrix[i];
     }
-    delete [] adjacencyMatrix;
+    delete[] adjacencyMatrix;
 }
 
 int Graph::getVertexCount() const {
@@ -83,21 +83,7 @@ void Graph::removeEdge(int edgeNo) {
 }
 
 void Graph::removeNextEdge() {
-    for (int i = 1; i <= matrixSize; i++) {
-        for (int j = i; j <= matrixSize; j++) {
-            if (hasEdge(i, j)) {
-                removeEdge(i, j);
-                return;
-            }
-        }
-    }
-}
-
-bool Graph::isBipartite() const {
-    Bipartite * bp = new Bipartite(*this);
-    bool result = bp->isBipartite;
-    delete bp;
-    return result;
+    removeEdge(1);
 }
 
 std::vector<int> *Graph::getAdjacentNodes(int vertex) const {

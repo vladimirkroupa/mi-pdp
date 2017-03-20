@@ -5,7 +5,7 @@
 #include "Graph.h"
 #include "Solver.h"
 
-Graph *createGraph(char *filename) {
+Graph *createGraph(const char *filename) {
     FILE *file = fopen(filename, (const char *) "r");
     if (file == NULL) {
         throw std::invalid_argument("File does not exist.");
@@ -42,7 +42,15 @@ Graph *createGraph(char *filename) {
 
 
 int main() {
-    Graph *graph = createGraph("../graph10_5.txt");
+    Graph *graph;
+    try {
+//        std::string file = "graph10_5.txt";
+        std::string file = "graph4_non_bip.txt";
+        graph = createGraph(file.c_str());
+    } catch (const std::invalid_argument & exception) {
+        std::cout << "File does not exist." << std::endl;
+        return -1;
+    }
     Solver *solver = new Solver(*graph);
     solver->solve();
     Graph *solution = solver->getSolution();

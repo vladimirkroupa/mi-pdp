@@ -1,8 +1,11 @@
 #include <stdexcept>
 #include "Bipartite.h"
 
-Bipartite::Bipartite(const Graph &graph) {
-    this->graph = new ColoredGraph(graph);
+Bipartite::Bipartite(Graph & _graph) : graph(_graph) {
+    colors = new Color[graph.getVertexCount()];
+    for (int i = 0; i < graph.getVertexCount(); i++) {
+        colors[i] = NONE;
+    }
     isBipartite = true;
     for (int i = 1; i <= graph.getVertexCount(); i++) {
         dfs(i, GREEN);
@@ -10,16 +13,16 @@ Bipartite::Bipartite(const Graph &graph) {
 }
 
 Bipartite::~Bipartite() {
-    delete graph;
+    delete[] colors;
 }
 
 void Bipartite::dfs(int node, Color color) {
-    if (!graph->hasColor(node)) {
-        graph->setColor(node, color);
-        const std::vector<int> * adjacent = graph->getAdjacentNodes(node);
-        for (int i = 0; i < adjacent->size(); i++) {
+    if (!hasColor(node)) {
+        setColor(node, color);
+        const std::vector<int> *adjacent = graph.getAdjacentNodes(node);
+        for (unsigned int i = 0; i < adjacent->size(); i++) {
             int adjacentNode = (*adjacent)[i];
-            if (graph->hasColor(adjacentNode) && graph->getColor(adjacentNode) == color) {
+            if (hasColor(adjacentNode) && getColor(adjacentNode) == color) {
                 isBipartite = false;
                 return;
             }
@@ -27,6 +30,19 @@ void Bipartite::dfs(int node, Color color) {
         }
     }
 }
+
+bool Bipartite::hasColor(int vertex) const {
+    return colors[vertex - 1] != NONE;
+}
+
+Color Bipartite::getColor(int vertex) const {
+    return colors[vertex - 1];
+}
+
+void Bipartite::setColor(int vertex, Color color) {
+    colors[vertex - 1] = color;
+}
+
 
 Color Bipartite::otherColor(Color color) {
     if (color == NONE) {
