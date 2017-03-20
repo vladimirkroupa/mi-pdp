@@ -1,26 +1,29 @@
 #include <clocale>
 #include <stdexcept>
+#include <assert.h>
 #include "Graph.h"
 #include "Bipartite.h"
 
 Graph::Graph(int size) {
-    this->matrixSize = size;
-    this->adjacencyMatrix = new bool* [matrixSize];
+    matrixSize = size - 1;
+    edgeCount = 0;
+    adjacencyMatrix = new bool* [matrixSize];
     for (int i = 0; i < matrixSize; i++) {
-        adjacencyMatrix[i] = new bool[matrixSize];
-        std::fill_n(adjacencyMatrix[i], matrixSize, 0);
+        int elemsInRow = matrixSize - i;
+        adjacencyMatrix[i] = new bool[elemsInRow];
+        std::fill_n(adjacencyMatrix[i], elemsInRow, false);
     }
-    recomputeEdgeCount();
 }
 
-Graph::Graph(const Graph& graph) {
-    this->matrixSize = graph.matrixSize;
-    this->adjacencyMatrix = new bool* [matrixSize];
-    for (int i = 0; i < matrixSize; i++) {
-        adjacencyMatrix[i] = new bool[matrixSize];
-        std::copy(graph.adjacencyMatrix[i], graph.adjacencyMatrix[i] + matrixSize, adjacencyMatrix[i]);
+Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
+    for (int i = 1; i < graph.getSize(); i++) {
+        for (int j = i + 1; j <= graph.getSize(); j++) {
+            bool connected = graph.hasEdge(i, j);
+            if (connected) {
+                addEdge(i, j);
+            }
+        }
     }
-    recomputeEdgeCount();
 }
 
 Graph::~Graph() {
@@ -30,46 +33,52 @@ Graph::~Graph() {
     delete[] adjacencyMatrix;
 }
 
-int Graph::getVertexCount() const {
-    return matrixSize;
+std::vector<int> Graph::getAdjacentNodes(int node) const {
+    std::vector<int> edges;
+    for (int node2 = 1; node2 <= matrixSize; node2++) {
+        if (hasEdge(node, node2)) {
+            edges.push_back(node2);
+        }
+    }
+    return edges;
+}
+
+int Graph::getSize() const {
+    return matrixSize + 1;
 }
 
 int Graph::getEdgeCount() const {
     return edgeCount;
 }
 
-bool Graph::hasEdge(int vertex1, int vertex2) const {
-//    checkVertexExists(vertex1);
-//    checkVertexExists(vertex2);
-    return adjacencyMatrix[vertex1 - 1][vertex2 - 1];
+bool Graph::hasEdge(int node1, int node2) const {
+//    checkNodeExists(node1);
+//    checkNodeExists(node2);
+    return get(node1, node2);
 }
 
-void Graph::addEdge(int vertex1, int vertex2) {
-//    checkVertexExists(vertex1);
-//    checkVertexExists(vertex2);
-    bool added = !adjacencyMatrix[vertex1 - 1][vertex2 - 1];
-    adjacencyMatrix[vertex1 - 1][vertex2 - 1] = true;
-    adjacencyMatrix[vertex2 - 1][vertex1 - 1] = true;
-    if (added) {
-        edgeCount++;
+void Graph::addEdge(int node1, int node2) {
+//    checkNodeExists(node1);
+//    checkNodeExists(node2);
+    bool before = set(node1, node2, true);
+    if (!before) {
+        edgeCount += 1;
     }
 }
 
-void Graph::removeEdge(int vertex1, int vertex2) {
-//    checkVertexExists(vertex1);
-//    checkVertexExists(vertex2);
-    bool removed = adjacencyMatrix[vertex1 - 1][vertex2 - 1];
-    adjacencyMatrix[vertex1 - 1][vertex2 - 1] = false;
-    adjacencyMatrix[vertex2 - 1][vertex1 - 1] = false;
+void Graph::removeEdge(int node1, int node2) {
+//    checkNodeExists(node1);
+//    checkNodeExists(node2);
+    bool removed = set(node1, node2, false);
     if (removed) {
-        edgeCount--;
+        edgeCount -= 1;
     }
 }
 
 void Graph::removeEdge(int edgeNo) {
     int skipped = 0;
-    for (int i = 1; i <= matrixSize; i++) {
-        for (int j = i; j <= matrixSize; j++) {
+    for (int i = 1; i <= getSize(); i++) {
+        for (int j = i; j <= getSize(); j++) {
             if (hasEdge(i, j)) {
                 if (skipped == edgeNo - 1) {
                     removeEdge(i, j);
@@ -86,31 +95,36 @@ void Graph::removeNextEdge() {
     removeEdge(1);
 }
 
-std::vector<int> *Graph::getAdjacentNodes(int vertex) const {
-    std::vector<int> * edges = new std::vector<int>();
-    for (int vertex2 = 1; vertex2 <= matrixSize; vertex2++) {
-        if (hasEdge(vertex, vertex2)) {
-            edges->push_back(vertex2);
-        }
+bool Graph::get(int node1, int node2) const {
+    if (node1 == node2) {
+        return false;
     }
-    return edges;
+    if (node1 > node2) {
+        return get(node2, node1);
+    }
+    int colIx = node2 - node1 - 1;
+    int rowIx = node1 - 1;
+    return adjacencyMatrix[rowIx][colIx];
 }
 
-void Graph::checkVertexExists(int node) const {
+bool Graph::set(int node1, int node2, bool value) {
+    if (node1 == node2) {
+        assert(!value);
+        return false;
+    }
+    if (node1 > node2) {
+        return set(node2, node1, value);
+    }
+    int colIx = node2 - node1 - 1;
+    int rowIx = node1 - 1;
+    bool before = adjacencyMatrix[rowIx][colIx];
+    adjacencyMatrix[rowIx][colIx] = value;
+    return before;
+}
+
+void Graph::checkNodeExists(int node) const {
     int nodeIx = node - 1;
     if (nodeIx < 0 || nodeIx > matrixSize - 1) {
         throw new std::out_of_range("No such node " + node);
     }
-}
-
-void Graph::recomputeEdgeCount() {
-    int result = 0;
-    for (int i = 1; i <= matrixSize; i++) {
-        for (int j = i; j <= matrixSize; j++) {
-            if (hasEdge(i, j)) {
-                result += 1;
-            }
-        }
-    }
-    edgeCount = result;
 }

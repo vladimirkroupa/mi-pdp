@@ -44,20 +44,26 @@ Graph *createGraph(const char *filename) {
 int main() {
     Graph *graph;
     try {
-//        std::string file = "graph10_5.txt";
-        std::string file = "graph4_non_bip.txt";
+        std::string file = "graph10_5.txt";
+//        std::string file = "graph4_non_bip.txt";
         graph = createGraph(file.c_str());
+//        graph = new Graph(4);
+//        graph->addEdge(1, 2);
+//        graph->addEdge(1, 3);
+//        graph->addEdge(1, 4);
+//        graph->addEdge(2, 3);
+//        graph->addEdge(2, 4);
+//        graph->addEdge(3, 4);
     } catch (const std::invalid_argument & exception) {
         std::cout << "File does not exist." << std::endl;
         return -1;
     }
-    Solver *solver = new Solver(*graph);
-    solver->solve();
-    Graph *solution = solver->getSolution();
+    Solver solver(*graph);
+    solver.solve();
+    Graph *solution = solver.getSolution();
     if (solution != NULL) {
         std::cout << "Result: " << solution->getEdgeCount() << std::endl;
     } else {
         std::cout << "No solution." << std::endl;
     }
-
 }

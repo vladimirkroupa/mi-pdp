@@ -3,18 +3,23 @@
 #include "Bipartite.h"
 
 Solver::Solver(Graph &problem) {
-    incumbent = NULL;
-    incumbentObjective = problem.getVertexCount() - 1;
+    incumbent = nullptr;
+    incumbentObjective = problem.getSize() - 1;
     stack.push(&problem);
 }
 
 Solver::~Solver() {
-    delete incumbent;
+    if (incumbent != nullptr) {
+        delete incumbent;
+    }
 }
 
 void Solver::setIncumbent(Graph *graph) {
-    this->incumbent = graph;
-    this->incumbentObjective = graph->getEdgeCount();
+    if (incumbent != nullptr) {
+        delete incumbent;
+    }
+    incumbent = graph;
+    incumbentObjective = graph->getEdgeCount();
 }
 
 Graph *Solver::getSolution() const {
@@ -41,13 +46,15 @@ void Solver::solve() {
         } else {
             for (int i = 1; i <= g->getEdgeCount(); i++) {
                 Graph *nextG = new Graph(*g);
-                delete g;
                 nextG->removeEdge(i);
                 if (nextG->getEdgeCount() > incumbentObjective ||
-                    (incumbent == NULL && g->getEdgeCount() == incumbentObjective)) {
+                    (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
                     stack.push(nextG);
+                } else {
+                    delete nextG;
                 }
             }
+            delete g;
         }
     }
 }

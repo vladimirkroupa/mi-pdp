@@ -8,24 +8,24 @@ public:
     Graph(int size);
     Graph(const Graph& graph);
     virtual ~Graph();
-    int getVertexCount() const;
+    int getSize() const;
     int getEdgeCount() const;
-    bool hasEdge(int vertex1, int vertex2) const;
-    void addEdge(int vertex1, int vertex2);
-    void removeEdge(int vertex1, int vertex2);
+    bool hasEdge(int node1, int node2) const;
+    void addEdge(int node1, int node2);
+    void removeEdge(int node1, int node2);
     void removeEdge(int edgeNo);
     void removeNextEdge();
 
-    std::vector<int> * getAdjacentNodes(int vertex) const;
+    std::vector<int> getAdjacentNodes(int node) const;
     //friend std::ostream & operator <<(std::ostream & os, const Graph & graph);
 protected:
-    void checkVertexExists(int node) const;
+    void checkNodeExists(int node) const;
 private:
     bool ** adjacencyMatrix;
     int matrixSize;
     int edgeCount;
-
-    void recomputeEdgeCount();
+    bool get(int node1, int node2) const;
+    bool set(int node1, int node2, bool value);
 };
 
 #endif
