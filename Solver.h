@@ -19,6 +19,8 @@ private:
     Graph * incumbent;
     int incumbentObjective;
 
+    void solveState(Graph * graph);
+
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
 };

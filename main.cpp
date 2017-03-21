@@ -44,8 +44,8 @@ Graph *createGraph(const char *filename) {
 int main() {
     Graph *graph;
     try {
-        std::string file = "graph10_5.txt";
-//        std::string file = "graph4_non_bip.txt";
+//        std::string file = "graph10_5.txt";
+        std::string file = "graph4_non_bip.txt";
         graph = createGraph(file.c_str());
 //        graph = new Graph(4);
 //        graph->addEdge(1, 2);
