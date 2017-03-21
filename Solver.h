@@ -19,6 +19,9 @@ private:
     Graph * incumbent;
     int incumbentObjective;
 
+    void doSolve(std::stack<Graph *> stack);
+    void solveState(std::stack<Graph *> stack, Graph *g);
+
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
 };

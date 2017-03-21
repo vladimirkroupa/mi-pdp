@@ -1,6 +1,7 @@
 #include <clocale>
 #include <stdexcept>
 #include <assert.h>
+#include <iostream>
 #include "Graph.h"
 #include "Bipartite.h"
 

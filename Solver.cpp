@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 #include "Solver.h"
 #include "Bipartite.h"
 
@@ -27,35 +28,48 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
-    int printSkip = 0;
+    doSolve(this->stack);
+}
+
+void Solver::doSolve(std::stack<Graph *> stack) {
+//    int printSkip = 0;
+    # pragma omp parallel shared(stack) num_threads(1)
     while (!stack.empty()) {
-        Graph *g = stack.top();
-        stack.pop();
-
-        if (printSkip == 1000) {
-            std::cout << "stack size: " << stack.size() << " / edge count: " << g->getEdgeCount() << " / max: "
-                      << incumbentObjective << std::endl;
-            printSkip = 0;
-        } else {
-            printSkip++;
+        Graph *g;
+        # pragma omp critical
+        {
+            g = stack.top();
+            stack.pop();
         }
+//        if (printSkip == 1) {
+            int threadNo = 0;//omp_get_thread_num();
+            std::cout << threadNo << " / stack size: " << stack.size() << " / edge count: " << g->getEdgeCount()
+                      << " / max: " << incumbentObjective << std::endl;
+//            printSkip = 0;
+//        }
+//        printSkip++;
+        # pragma omp task
+        solveState(stack, g);
+    }
+}
 
-        if (isBipartite(*g)) {
-            std::cout << "!! found solution with edge count " << g->getEdgeCount() << std::endl;
-            setIncumbent(g);
-        } else {
-            for (int i = 1; i <= g->getEdgeCount(); i++) {
-                Graph *nextG = new Graph(*g);
-                nextG->removeEdge(i);
-                if (nextG->getEdgeCount() > incumbentObjective ||
-                    (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
-                    stack.push(nextG);
-                } else {
-                    delete nextG;
-                }
+void Solver::solveState(std::stack<Graph *> , Graph *g) {
+    if (isBipartite(*g)) {
+        std::cout << "!! found solution with edge count " << g->getEdgeCount() << std::endl;
+        setIncumbent(g);
+    } else {
+        for (int i = 1; i <= g->getEdgeCount(); i++) {
+            Graph *nextG = new Graph(*g);
+            nextG->removeEdge(i);
+            if (nextG->getEdgeCount() > incumbentObjective ||
+                (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
+                # pragma omp critical
+                stack.push(nextG);
+            } else {
+                delete nextG;
             }
-            delete g;
         }
+        delete g;
     }
 }
 
