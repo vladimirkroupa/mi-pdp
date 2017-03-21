@@ -6,7 +6,7 @@
 Solver::Solver(Graph &problem) {
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
-    stack.push(&problem);
+    _stack.push(&problem);
 }
 
 Solver::~Solver() {
@@ -28,34 +28,38 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
-    doSolve(this->stack);
+    doSolve(&_stack);
 }
 
-void Solver::doSolve(std::stack<Graph *> stack) {
-//    int printSkip = 0;
-    # pragma omp parallel shared(stack) num_threads(1)
-    while (!stack.empty()) {
-        Graph *g;
-        # pragma omp critical
-        {
-            g = stack.top();
-            stack.pop();
+void Solver::doSolve(std::stack<Graph *> *stack) {
+    # pragma omp parallel shared(stack) num_threads(4)
+    {
+        printf("thread %i ready...\n", omp_get_thread_num());
+        while (!stack->empty()) {
+            Graph *g;
+            # pragma omp critical
+            {
+                g = stack->top();
+                stack->pop();
+            }
+
+            # pragma omp task
+            solveState(stack, g);
+            # pragma omp taskwait
         }
-//        if (printSkip == 1) {
-            int threadNo = 0;//omp_get_thread_num();
-            std::cout << threadNo << " / stack size: " << stack.size() << " / edge count: " << g->getEdgeCount()
-                      << " / max: " << incumbentObjective << std::endl;
-//            printSkip = 0;
-//        }
-//        printSkip++;
-        # pragma omp task
-        solveState(stack, g);
     }
 }
 
-void Solver::solveState(std::stack<Graph *> , Graph *g) {
+void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
+
+    if (printSkip == 100000) {
+        printf("%i / stack size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), stack->size(), g->getEdgeCount(), incumbentObjective);
+        printSkip = 0;
+    }
+    printSkip++;
+
     if (isBipartite(*g)) {
-        std::cout << "!! found solution with edge count " << g->getEdgeCount() << std::endl;
+        printf("!! found solution with edge count %i \n", g->getEdgeCount());
         setIncumbent(g);
     } else {
         for (int i = 1; i <= g->getEdgeCount(); i++) {
@@ -64,7 +68,7 @@ void Solver::solveState(std::stack<Graph *> , Graph *g) {
             if (nextG->getEdgeCount() > incumbentObjective ||
                 (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
                 # pragma omp critical
-                stack.push(nextG);
+                stack->push(nextG);
             } else {
                 delete nextG;
             }
