@@ -15,11 +15,13 @@ public:
     void solve();
 
 private:
-    std::stack<Graph *> stack;
+    std::stack<Graph *> _stack;
     Graph * incumbent;
     int incumbentObjective;
 
-    void solveState(Graph * graph);
+    void doSolve(std::stack<Graph *> * stack);
+
+    void solveState(std::stack<Graph *> * stack, Graph * graph);
 
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);

@@ -5,7 +5,7 @@
 Solver::Solver(Graph &problem) {
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
-    stack.push(&problem);
+    _stack.push(&problem);
 }
 
 Solver::~Solver() {
@@ -27,24 +27,29 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
+    doSolve(&_stack);
+}
+
+void Solver::doSolve(std::stack<Graph *> * stack) {
     int printSkip = 0;
-    while (!stack.empty()) {
-        Graph *g = stack.top();
-        stack.pop();
+    while (!stack->empty()) {
+        Graph *g = stack->top();
+        stack->pop();
 
         if (printSkip == 1000) {
-            std::cout << "stack size: " << stack.size() << " / edge count: " << g->getEdgeCount() << " / max: "
+            std::cout << "stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: "
                       << incumbentObjective << std::endl;
             printSkip = 0;
         } else {
             printSkip++;
         }
 
-        solveState(g);
+        solveState(stack, g);
     }
 }
 
-void Solver::solveState(Graph * g) {
+
+void Solver::solveState(std::stack<Graph *> * stack, Graph * g) {
     if (isBipartite(*g)) {
         std::cout << "!! found solution with edge count " << g->getEdgeCount() << std::endl;
         setIncumbent(g);
@@ -54,7 +59,7 @@ void Solver::solveState(Graph * g) {
             nextG->removeEdge(i);
             if (nextG->getEdgeCount() > incumbentObjective ||
                 (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
-                stack.push(nextG);
+                stack->push(nextG);
             } else {
                 delete nextG;
             }
