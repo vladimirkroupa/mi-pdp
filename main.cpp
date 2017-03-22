@@ -43,14 +43,16 @@ Graph *createGraph(const char *filename) {
 
 int main(int argc, char **argv) {
     Graph *graph;
+    int threads;
     try {
         std::string file = argv[1];
+        threads = atoi(argv[2]);
         graph = createGraph(file.c_str());
     } catch (const std::invalid_argument & exception) {
         std::cout << "File does not exist." << std::endl;
         return -1;
     }
-    Solver solver(*graph);
+    Solver solver(*graph, threads);
     solver.solve();
     Graph *solution = solver.getSolution();
     if (solution != NULL) {

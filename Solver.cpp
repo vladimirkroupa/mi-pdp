@@ -3,7 +3,8 @@
 #include "Solver.h"
 #include "Bipartite.h"
 
-Solver::Solver(Graph &problem) {
+Solver::Solver(Graph &problem, int threads) {
+    this->threads = threads;
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
     _stack.push(&problem);
@@ -32,7 +33,7 @@ void Solver::solve() {
 }
 
 void Solver::doSolve(std::stack<Graph *> *stack) {
-    # pragma omp parallel shared(stack) num_threads(4)
+    # pragma omp parallel shared(stack) num_threads(threads)
     {
         printf("thread %i ready...\n", omp_get_thread_num());
         while (!stack->empty()) {

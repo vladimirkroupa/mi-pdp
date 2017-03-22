@@ -6,7 +6,7 @@
 
 class Solver {
 public:
-    Solver(Graph &problem);
+    Solver(Graph &problem, int threads);
 
     virtual ~Solver();
 
@@ -19,6 +19,7 @@ private:
     Graph * incumbent;
     int incumbentObjective;
     int printSkip = 0;
+    int threads;
 
     void doSolve(std::stack<Graph *> * stack);
     void solveState(std::stack<Graph *> * stack, Graph *g);
