@@ -36,7 +36,7 @@ void Solver::doSolve(std::stack<Graph *> * stack) {
         Graph *g = stack->top();
         stack->pop();
 
-        if (printSkip == 1000) {
+        if (printSkip == 100000) {
             std::cout << "stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: "
                       << incumbentObjective << std::endl;
             printSkip = 0;
