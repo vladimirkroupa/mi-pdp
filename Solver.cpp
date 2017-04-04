@@ -7,7 +7,7 @@ Solver::Solver(Graph &problem, int threads) {
     this->threads = threads;
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
-    _stack.push(&problem);
+    _deque.push_back(&problem);
 }
 
 Solver::~Solver() {
@@ -29,32 +29,32 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
-    doSolve(&_stack);
+    doSolve(&_deque);
 }
 
-void Solver::doSolve(std::stack<Graph *> *stack) {
-    # pragma omp parallel shared(stack) num_threads(threads)
+void Solver::doSolve(std::deque<Graph *> *deque) {
+    # pragma omp parallel shared(deque) num_threads(threads)
     {
         printf("thread %i ready...\n", omp_get_thread_num());
-        while (!stack->empty()) {
+        while (!deque->empty()) {
             Graph *g;
             # pragma omp critical
             {
-                g = stack->top();
-                stack->pop();
+                g = deque->back();
+                deque->pop_back();
             }
 
             # pragma omp task
-            solveState(stack, g);
+            solveState(deque, g);
             # pragma omp taskwait
         }
     }
 }
 
-void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
+void Solver::solveState(std::deque<Graph *> *deque, Graph *g) {
 
     if (printSkip == 100000) {
-        printf("%i / stack size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), stack->size(), g->getEdgeCount(), incumbentObjective);
+        printf("%i / deque size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), deque->size(), g->getEdgeCount(), incumbentObjective);
         printSkip = 0;
     }
     printSkip++;
@@ -70,7 +70,7 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
             if (nextG->getEdgeCount() > incumbentObjective ||
                 (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
                 # pragma omp critical
-                stack->push(nextG);
+                deque->push_back(nextG);
             } else {
                 delete nextG;
             }

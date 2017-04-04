@@ -2,7 +2,7 @@
 #define MI_PDP_CPP_SOLVER_H
 
 #include "Graph.h"
-#include <stack>
+#include <deque>
 
 class Solver {
 public:
@@ -15,14 +15,14 @@ public:
     void solve();
 
 private:
-    std::stack<Graph *> _stack;
+    std::deque<Graph *> _deque;
     Graph * incumbent;
     int incumbentObjective;
     int printSkip = 0;
     int threads;
 
-    void doSolve(std::stack<Graph *> * stack);
-    void solveState(std::stack<Graph *> * stack, Graph *g);
+    void doSolve(std::deque<Graph *> * deque);
+    void solveState(std::deque<Graph *> * deque, Graph *g);
 
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
