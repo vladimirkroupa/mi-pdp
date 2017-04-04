@@ -7,7 +7,11 @@ Solver::Solver(Graph &problem, int threads) {
     this->threads = threads;
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
-    _deque.push_back(&problem);
+    for (int i = 1; i <= problem.getEdgeCount(); i++) {
+        Graph *nextG = new Graph(problem);
+        nextG->removeEdge(i);
+        _deque1.push_back(nextG);
+    }
 }
 
 Solver::~Solver() {
@@ -29,32 +33,30 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
-    doSolve(&_deque);
-}
-
-void Solver::doSolve(std::deque<Graph *> *deque) {
-    # pragma omp parallel shared(deque) num_threads(threads)
-    {
-        printf("thread %i ready...\n", omp_get_thread_num());
-        while (!deque->empty()) {
-            Graph *g;
-            # pragma omp critical
-            {
-                g = deque->back();
-                deque->pop_back();
-            }
-
-            # pragma omp task
-            solveState(deque, g);
-            # pragma omp taskwait
-        }
+    # pragma omp parallel num_threads(threads)
+    printf("thread %i ready...\n", omp_get_thread_num());
+    while (!_deque1.empty()) {
+        std::cout << "switching queues..." << _deque1.size() << std::endl;
+        doSolve(&_deque1, &_deque2);
+        _deque1.clear();
+        std::cout << "switching queues..." << _deque2.size() << std::endl;
+        doSolve(&_deque2, &_deque1);
+        _deque2.clear();
     }
 }
 
-void Solver::solveState(std::deque<Graph *> *deque, Graph *g) {
+void Solver::doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeque) {
+    #pragma omp for schedule(static)
+    for (unsigned int i = 0; i < workDeque->size(); i++) {
+        Graph *g = (*workDeque)[i];
+        solveState(auxDeque, g);
+    }
+}
+
+void Solver::solveState(std::deque<Graph *> *auxDeque, Graph *g) {
 
     if (printSkip == 100000) {
-        printf("%i / deque size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), deque->size(), g->getEdgeCount(), incumbentObjective);
+        printf("%i / edge count: %i / max: %i\n", omp_get_thread_num(), g->getEdgeCount(), incumbentObjective);
         printSkip = 0;
     }
     printSkip++;
@@ -68,9 +70,9 @@ void Solver::solveState(std::deque<Graph *> *deque, Graph *g) {
             Graph *nextG = new Graph(*g);
             nextG->removeEdge(i);
             if (nextG->getEdgeCount() > incumbentObjective ||
-                (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
+                (incumbent == nullptr && nextG->getEdgeCount() == incumbentObjective)) {
                 # pragma omp critical
-                deque->push_back(nextG);
+                auxDeque->push_back(nextG);
             } else {
                 delete nextG;
             }

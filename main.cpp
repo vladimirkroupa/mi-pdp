@@ -44,8 +44,9 @@ Graph *createGraph(const char *filename) {
 int main(int argc, char **argv) {
     Graph *graph;
     int threads;
-    if (argc != 2) {
-        std:cout << "Needs 2 args." << std::endl;
+    if (argc != 3) {
+        std::cout << "Needs 2 args." << std::endl;
+        return -1;
     }
     try {
         std::string file = argv[1];

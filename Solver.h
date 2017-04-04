@@ -15,14 +15,15 @@ public:
     void solve();
 
 private:
-    std::deque<Graph *> _deque;
+    std::deque<Graph *> _deque1;
+    std::deque<Graph *> _deque2;
     Graph * incumbent;
     int incumbentObjective;
     int printSkip = 0;
     int threads;
 
-    void doSolve(std::deque<Graph *> * deque);
-    void solveState(std::deque<Graph *> * deque, Graph *g);
+    void doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeque);
+    void solveState(std::deque<Graph *> * auxDeque, Graph *g);
 
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
