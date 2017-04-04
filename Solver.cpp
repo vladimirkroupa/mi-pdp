@@ -61,6 +61,7 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
 
     if (isBipartite(*g)) {
         printf("!! found solution with edge count %i \n", g->getEdgeCount());
+        # pragma omp critical
         setIncumbent(g);
     } else {
         for (int i = 1; i <= g->getEdgeCount(); i++) {
