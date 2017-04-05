@@ -46,10 +46,12 @@ void Solver::solve() {
 }
 
 void Solver::doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeque) {
-    #pragma omp for schedule(static)
+    #pragma omp parallel for
     for (unsigned int i = 0; i < workDeque->size(); i++) {
         Graph *g = (*workDeque)[i];
-        solveState(auxDeque, g);
+        if (possiblyBetter(*g)) {
+            solveState(auxDeque, g);
+        }
     }
 }
 
@@ -61,7 +63,7 @@ void Solver::solveState(std::deque<Graph *> *auxDeque, Graph *g) {
     }
     printSkip++;
 
-    if (isBipartite(*g)) {
+    if (isBipartite(*g) && g->getEdgeCount() > incumbentObjective) {
         printf("!! found solution with edge count %i \n", g->getEdgeCount());
         # pragma omp critical
         setIncumbent(g);
@@ -69,8 +71,7 @@ void Solver::solveState(std::deque<Graph *> *auxDeque, Graph *g) {
         for (int i = 1; i <= g->getEdgeCount(); i++) {
             Graph *nextG = new Graph(*g);
             nextG->removeEdge(i);
-            if (nextG->getEdgeCount() > incumbentObjective ||
-                (incumbent == nullptr && nextG->getEdgeCount() == incumbentObjective)) {
+            if (possiblyBetter(*nextG)) {
                 # pragma omp critical
                 auxDeque->push_back(nextG);
             } else {
@@ -81,7 +82,12 @@ void Solver::solveState(std::deque<Graph *> *auxDeque, Graph *g) {
     }
 }
 
-bool Solver::isBipartite(Graph &graph) const {
+bool Solver::possiblyBetter(Graph & graph) const {
+    return graph.getEdgeCount() > incumbentObjective ||
+            (incumbent == nullptr && graph.getEdgeCount() == incumbentObjective);
+}
+
+bool Solver::isBipartite(Graph & graph) const {
     Bipartite *bp = new Bipartite(graph);
     bool result = bp->isBipartite;
     delete bp;

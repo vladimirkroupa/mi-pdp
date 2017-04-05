@@ -25,6 +25,7 @@ private:
     void doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeque);
     void solveState(std::deque<Graph *> * auxDeque, Graph *g);
 
+    bool possiblyBetter(Graph & graph) const;
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
 };
