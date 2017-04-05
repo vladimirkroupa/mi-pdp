@@ -51,6 +51,8 @@ void Solver::doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeq
         Graph *g = (*workDeque)[i];
         if (possiblyBetter(*g)) {
             solveState(auxDeque, g);
+        } else {
+            delete g;
         }
     }
 }
