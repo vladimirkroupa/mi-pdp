@@ -7,61 +7,57 @@ Packer::Packer(int graphSize) {
     this->graphSize = graphSize;
 }
 
-char * Packer::packWorkShare(Graph * graph) {
-    char * buffer = (char *)malloc(graphSize * sizeof(char));
+char * Packer::packGraph(Graph * graph) {
+    //char * buffer = (char *)malloc(graphSize * sizeof(char)); // FIXME + array size
+    char * buffer = new char[BUFFER_SIZE];
     int position = 0;
 
     if (PACKER_DEBUG) Logger::logLn("packing:");
 
-    // adjacency matrix
+    // flat array size
+    int matrixArraySize = graph->_getMatrix()->_getArraySize();
+    MPI_Pack(&matrixArraySize, 1, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
 
-    bool ** matrix = graph->getMatrix();
+    // flat array
+    bool * matrixArray = graph->_getMatrix()->_getArray();
     if (PACKER_DEBUG) {
-        stringstream str;
-        str << "degrees: ";
-        for (int i = 0; i < vertices; i++) {
-            str << degrees[i] << " ";
+        std::stringstream str;
+        str << "adjacency matrix: ";
+        for (int i = 0; i < matrixArraySize; i++) {
+            str << matrixArray[i] << " ";
         }
-        str << endl;
+        str << std::endl;
         Logger::log(&str);
     }
-    MPI_Pack(degrees, vertices, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-    // marker
-    char marker = '*';
-    if (PACKER_DEBUG) Logger::logLn("*");
-    MPI_Pack(&marker, 1, MPI_CHAR, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-    // edges
-    vector<Edge> * edges = tree->getEdges();
-    for(int i = 0; i < tree->edgeCount(); i++) {
-        Edge edge = (*edges)[i];
-        int edgeFrom = edge.vertex1;
-        int edgeTo = edge.vertex2;
-        MPI_Pack(&edgeFrom, 1, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-        MPI_Pack(&edgeTo, 1, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-    }
-
-    // marker
-    MPI_Pack(&marker, 1, MPI_CHAR, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-    // stack_edges
-    for(int i = 0; i < stackSize; i++) {
-        Edge edge = (*stack)[i];
-        int edgeFrom = edge.vertex1;
-        int edgeTo = edge.vertex2;
-        MPI_Pack(&edgeFrom, 1, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-        MPI_Pack(&edgeTo, 1, MPI_INT, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-    }
-
-    // marker
-    MPI_Pack(&marker, 1, MPI_CHAR, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-    *size = position;
+    MPI_Pack(matrixArray, matrixArraySize, MPI_CXX_BOOL, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
 
     return buffer;
 }
 
-Graph *Packer::unpackWorkShare(char *packed) {
-    return nullptr;
+Graph * Packer::unpackGraph(char * packed) {
+    int position = 0;
+    if (PACKER_DEBUG) Logger::logLn("unpacking:");
+
+    // flat array size
+    int matrixArraySize = 0;
+    MPI_Unpack(packed, BUFFER_SIZE, &position, &matrixArraySize, 1, MPI_INT, MPI_COMM_WORLD);
+    if (PACKER_DEBUG) {
+        std::stringstream str;
+        str << "matrixArraySize is: " << matrixArraySize << std::endl;
+        Logger::log(&str);
+    }
+
+    // flat array
+    bool * matrixArray;
+    MPI_Unpack(packed, BUFFER_SIZE, &position, matrixArray, 1, MPI_CXX_BOOL, MPI_COMM_WORLD);
+    if (PACKER_DEBUG) {
+        std::stringstream str;
+        str << "adjacency matrix: ";
+        for (int i = 0; i < matrixArraySize; i++) {
+            str << matrixArray[i] << " ";
+        }
+        str << std::endl;
+        Logger::log(&str);
+    }
+
 }

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "Graph.h"
 #include "Solver.h"
+#include "Worker.h"
 
 Graph *createGraph(const char *filename) {
     FILE *file = fopen(filename, (const char *) "r");
@@ -52,6 +53,10 @@ int main(int argc, char **argv) {
         std::cout << "File does not exist." << std::endl;
         return -1;
     }
+
+    Worker w = Worker(*graph, threads);
+    w.run();
+
     Solver solver(*graph, threads);
     solver.solve();
     Graph *solution = solver.getSolution();

@@ -2,7 +2,13 @@
 #define MI_PDP_CPP_MASTER_H
 
 #include "Graph.h"
+#include "Packer.h"
 #include <mpi/mpi.h>
+
+#define WORK_SHARE 1
+#define TERMINATE 2
+
+#define MPI_DEBUG false
 
 class Worker {
 public:
@@ -16,9 +22,13 @@ private:
     void runMaster();
     void runSlave();
 
+    void sendWork(Graph &problem, int to);
+    Graph * Worker::receiveWork(int source);
+
     int rank;
     int commSize;
     MPI_Comm comm;
+    Packer packer;
 };
 
 
