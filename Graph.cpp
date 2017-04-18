@@ -1,19 +1,12 @@
 #include <clocale>
 #include <stdexcept>
-#include <assert.h>
 #include <iostream>
 #include "Graph.h"
-#include "Bipartite.h"
 
 Graph::Graph(int size) {
     matrixSize = size - 1;
     edgeCount = 0;
-    adjacencyMatrix = new bool* [matrixSize];
-    for (int i = 0; i < matrixSize; i++) {
-        int elemsInRow = matrixSize - i;
-        adjacencyMatrix[i] = new bool[elemsInRow];
-        std::fill_n(adjacencyMatrix[i], elemsInRow, false);
-    }
+    adjacencyMatrix = new AdjacencyMatrix(size);
 }
 
 Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
@@ -28,10 +21,7 @@ Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
 }
 
 Graph::~Graph() {
-    for (int i = 0; i < matrixSize; i++) {
-        delete[] adjacencyMatrix[i];
-    }
-    delete[] adjacencyMatrix;
+    delete adjacencyMatrix;
 }
 
 std::vector<int> Graph::getAdjacentNodes(int node) const {
@@ -97,29 +87,12 @@ void Graph::removeNextEdge() {
 }
 
 bool Graph::get(int node1, int node2) const {
-    if (node1 == node2) {
-        return false;
-    }
-    if (node1 > node2) {
-        return get(node2, node1);
-    }
-    int colIx = node2 - node1 - 1;
-    int rowIx = node1 - 1;
-    return adjacencyMatrix[rowIx][colIx];
+    return adjacencyMatrix->get(node1, node2);
 }
 
 bool Graph::set(int node1, int node2, bool value) {
-    if (node1 == node2) {
-        assert(!value);
-        return false;
-    }
-    if (node1 > node2) {
-        return set(node2, node1, value);
-    }
-    int colIx = node2 - node1 - 1;
-    int rowIx = node1 - 1;
-    bool before = adjacencyMatrix[rowIx][colIx];
-    adjacencyMatrix[rowIx][colIx] = value;
+    bool before = adjacencyMatrix->get(node1, node2);
+    adjacencyMatrix->set(node1, node2, value);
     return before;
 }
 
