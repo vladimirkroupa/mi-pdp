@@ -129,3 +129,7 @@ void Graph::checkNodeExists(int node) const {
         throw new std::out_of_range("No such node " + node);
     }
 }
+
+bool ** Graph::getMatrix() const {
+    return adjacencyMatrix;
+}

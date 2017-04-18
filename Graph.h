@@ -18,6 +18,7 @@ public:
 
     std::vector<int> getAdjacentNodes(int node) const;
     //friend std::ostream & operator <<(std::ostream & os, const Graph & graph);
+    bool ** getMatrix() const;
 protected:
     void checkNodeExists(int node) const;
 private:

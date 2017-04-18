@@ -3,5 +3,5 @@ project(mi_pdp_cpp)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp Graph.cpp Graph.h Bipartite.cpp Bipartite.h Color.h Solver.cpp Solver.h)
+set(SOURCE_FILES main.cpp Graph.cpp Graph.h Bipartite.cpp Bipartite.h Color.h Solver.cpp Solver.h Worker.cpp Worker.h Packer.cpp Packer.h Logger.cpp Logger.h)
 add_executable(mi_pdp_cpp ${SOURCE_FILES})
