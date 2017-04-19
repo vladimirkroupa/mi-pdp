@@ -6,7 +6,8 @@
 #include <mpi/mpi.h>
 
 #define WORK_SHARE 1
-#define TERMINATE 2
+#define DONE 2
+#define TERMINATE 3
 
 #define MPI_DEBUG true
 
@@ -23,7 +24,7 @@ private:
     void runSlave();
 
     void sendWork(Graph &problem, int to);
-    Graph * receiveWork(int source);
+    Graph * receiveWork(int source, int * tag);
 
     Graph * _problem;
 

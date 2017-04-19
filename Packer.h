@@ -4,13 +4,13 @@
 #include "Graph.h"
 
 #define PACKER_DEBUG true
-#define BUFFER_SIZE 20000
+#define BUFFER_SIZE 200
 
 class Packer {
 public:
     Packer(int graphSize);
 
-    char * packGraph(Graph * graph, int rank);
+    char * packGraph(Graph * graph, int * position, int rankm);
     Graph * unpackGraph(char * packed, int rank);
 private:
     int graphSize;
