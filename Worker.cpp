@@ -29,16 +29,16 @@ void Worker::run() {
 
 void Worker::runMaster() {
     MPI_Status status;
-    int message = 0;
+    int message = -2;
     for (int dest = 1; dest < commSize; dest++) { // pro vsechny slave procesy
         sendWork(*_problem, dest); // pocatecni distribuce prace
     }
 
     int workingSlaves = commSize - 1;
     while (workingSlaves > 0) { // hlavni smycka
-        MPI_Recv(&message, BUFFER_SIZE, MPI_INT, MPI_ANY_SOURCE, DONE, MPI_COMM_WORLD, &status);
+        MPI_Recv(&message, 1, MPI_INT, MPI_ANY_SOURCE, DONE, MPI_COMM_WORLD, &status);
         int from = status.MPI_SOURCE;
-        std::cout << "solution from "  << from << ": " << message << std::endl;
+        if (MPI_DEBUG) { std::stringstream str; str << "solution from "  << from << ": " << message << std::endl; Logger::log(&str, rank); }
         if (false) { // FIXME if more work to be done
             sendWork(*_problem, from); // FIXME get work
         } else {
@@ -58,27 +58,25 @@ void Worker::runSlave() {
         } else if (tag == WORK_SHARE) {
             std::cout << rank << " working..." << std::endl;
             int solutionValue = solve(*g);
-            MPI_Send(&solutionValue, 0, MPI_INT, 0, DONE, comm);
+            if (MPI_DEBUG) { std::stringstream str; str << rank << " found solution with value "  << solutionValue << std::endl; Logger::log(&str, rank); }
+            MPI_Send(&solutionValue, 1, MPI_INT, 0, DONE, comm);
         }
     }
 }
 
 int Worker::solve(Graph &problem) {
-
-    std::cout << problem << std::endl;
+//    std::cout << problem << std::endl;
 
     Solver solver(problem, 2);
     solver.solve();
     Graph *solution = solver.getSolution();
-
-    std::cout << "got solution";
-
-    int result;
     if (solution != NULL) {
-        result = solution->getEdgeCount();
-        delete solution;
+        std::cout << "Result: " << solution->getEdgeCount() << std::endl;
+        return solution->getEdgeCount();
+    } else {
+        std::cout << "No solution." << std::endl;
+        return -1;
     }
-    return result;
 }
 
 void Worker::sendWork(Graph & problem, int to) {
