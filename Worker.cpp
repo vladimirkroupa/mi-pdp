@@ -1,5 +1,6 @@
 #include "Worker.h"
 #include "Logger.h"
+#include "Solver.h"
 
 #include <sstream>
 
@@ -30,13 +31,14 @@ void Worker::runMaster() {
     MPI_Status status;
     int message = 0;
     for (int dest = 1; dest < commSize; dest++) { // pro vsechny slave procesy
-        sendWork(*_problem, dest); // pocatecnı distribuce prace
+        sendWork(*_problem, dest); // pocatecni distribuce prace
     }
 
     int workingSlaves = commSize - 1;
-    while (workingSlaves > 0) { // hlavnı smycka
+    while (workingSlaves > 0) { // hlavni smycka
         MPI_Recv(&message, BUFFER_SIZE, MPI_INT, MPI_ANY_SOURCE, DONE, MPI_COMM_WORLD, &status);
         int from = status.MPI_SOURCE;
+        std::cout << "solution from "  << from << ": " << message << std::endl;
         if (false) { // FIXME if more work to be done
             sendWork(*_problem, from); // FIXME get work
         } else {
@@ -55,11 +57,23 @@ void Worker::runSlave() {
             break; // konec vypoctu
         } else if (tag == WORK_SHARE) {
             std::cout << rank << " working..." << std::endl;
-            // do the work
-            int message = 0;
-            MPI_Send(&message, 0, MPI_INT, 0, DONE, comm);
+            int solutionValue = solve(*g);
+            MPI_Send(&solutionValue, 0, MPI_INT, 0, DONE, comm);
         }
     }
+}
+
+int Worker::solve(Graph &problem) {
+    Solver solver(problem, 2);
+    solver.solve();
+    Graph *solution = solver.getSolution();
+
+    int result;
+    if (solution != NULL) {
+        result = solution->getEdgeCount();
+        delete solution;
+    }
+    return result;
 }
 
 void Worker::sendWork(Graph & problem, int to) {

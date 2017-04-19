@@ -17,6 +17,7 @@ public:
 
     virtual ~Worker();
 
+    int solve(Graph &problem);
     void run();
 
 private:
