@@ -8,6 +8,7 @@ class Graph {
 public:
     Graph(int size);
     Graph(const Graph& graph);
+    Graph(AdjacencyMatrix * adjacencyMatrix);
     virtual ~Graph();
     int getSize() const;
     int getEdgeCount() const;

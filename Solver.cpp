@@ -35,7 +35,7 @@ void Solver::solve() {
 void Solver::doSolve(std::stack<Graph *> *stack) {
     # pragma omp parallel shared(stack) num_threads(threads)
     {
-        printf("thread %i ready...\n", omp_get_thread_num());
+        //printf("thread %i ready...\n", omp_get_thread_num());
         while (!stack->empty()) {
             Graph *g;
             # pragma omp critical
@@ -54,7 +54,7 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
 void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
 
     if (printSkip == 100000) {
-        printf("%i / stack size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), stack->size(), g->getEdgeCount(), incumbentObjective);
+        //printf("%i / stack size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), stack->size(), g->getEdgeCount(), incumbentObjective);
         printSkip = 0;
     }
     printSkip++;

@@ -1,10 +1,10 @@
 #include <clocale>
 #include <cstdlib>
 #include <iostream>
-#include <stdio.h>
 #include "Graph.h"
 #include "Solver.h"
 #include "Worker.h"
+#include "Logger.h"
 
 Graph *createGraph(const char *filename) {
     FILE *file = fopen(filename, (const char *) "r");
@@ -43,6 +43,7 @@ Graph *createGraph(const char *filename) {
 
 
 int main(int argc, char **argv) {
+    MPI_Init(&argc, &argv);
     Graph *graph;
     int threads;
     try {
@@ -57,12 +58,13 @@ int main(int argc, char **argv) {
     Worker w = Worker(*graph, threads);
     w.run();
 
-    Solver solver(*graph, threads);
-    solver.solve();
-    Graph *solution = solver.getSolution();
-    if (solution != NULL) {
-        std::cout << "Result: " << solution->getEdgeCount() << std::endl;
-    } else {
-        std::cout << "No solution." << std::endl;
-    }
+//    Solver solver(*graph, threads);
+//    solver.solve();
+//    Graph *solution = solver.getSolution();
+//    if (solution != NULL) {
+//        std::cout << "Result: " << solution->getEdgeCount() << std::endl;
+//    } else {
+//        std::cout << "No solution." << std::endl;
+//    }
+    MPI_Finalize();
 }

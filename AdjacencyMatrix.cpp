@@ -16,6 +16,12 @@ AdjacencyMatrix::AdjacencyMatrix(const AdjacencyMatrix &orig) {
     this->flatArray = arrayCopy;
 }
 
+AdjacencyMatrix::AdjacencyMatrix(bool * array, int length, int emulatedSize) {
+    this->emulatedSize = emulatedSize;
+    this->arraySize = length;
+    this->flatArray = array;
+}
+
 AdjacencyMatrix::~AdjacencyMatrix() {
     delete [] flatArray;
 }

@@ -6,6 +6,7 @@ class AdjacencyMatrix {
 public:
     AdjacencyMatrix(int size);
     AdjacencyMatrix(const AdjacencyMatrix& orig);
+    AdjacencyMatrix(bool * array, int length, int emulatedSize);
     virtual ~AdjacencyMatrix();
     bool get(int node1, int node2) const;
     bool set(int node1, int node2, bool value);

@@ -4,15 +4,18 @@
 #include <sstream>
 
 Worker::Worker(Graph &problem, int threadsPerSolver) {
-    packer = Packer(problem.getSize());
+    packer = new Packer(problem.getSize());
 
     comm = MPI_COMM_WORLD;
     MPI_Comm_size(comm, &commSize);
     MPI_Comm_rank(comm, &rank);
+
+    _problem = &problem;
 }
 
 Worker::~Worker() {
-
+    delete packer;
+    delete _problem;
 }
 
 void Worker::run() {
@@ -25,9 +28,16 @@ void Worker::run() {
 
 void Worker::runMaster() {
     MPI_Status status;
-//    for (int dest = 1; dest < commSize; dest++) { // pro vsechny slave procesy
-//        MPI_Send(..., dest, tag_work, MPI_COMM_WORLD); //pocatecnı distribuce prace
-//    }
+    int i = 50;
+    for (int dest = 1; dest < commSize; dest++) { // pro vsechny slave procesy
+        sendWork(*_problem, dest);
+//        MPI_Send(&i, 1, MPI_INT, dest, WORK_SHARE, MPI_COMM_WORLD); //pocatecnı distribuce prace
+    }
+    // delete
+    for (int dest = 1; dest < commSize; dest++) {
+        MPI_Send(&i, 0, MPI_INT, dest, TERMINATE, MPI_COMM_WORLD);
+    }
+
 //    int working_slaves = num_procs - 1; // pocet pracujıcıch slave procesu
 //    while (working_slaves > 0) { // hlavnı smycka
 //        MPI_Recv(..., MPI_ANY_SOURCE, tag_done, MPI_COMM_WORLD, &status);
@@ -42,10 +52,18 @@ void Worker::runMaster() {
 
 void Worker::runSlave() {
     while (true) {
-//        MPI_Recv(..., 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-//        if (status.MPI_TAG == tag_finished) {
-//            break; // konec vypoctu
-//        }
+        MPI_Status status;
+        Graph * g = receiveWork(0);
+        std::cout << "got graph of size:" << g->getSize() << std::endl;
+        int message = -1;
+//        MPI_Recv(&message, 1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+//        std::cout << rank << " got message: " << message << std::endl;
+
+        MPI_Recv(&message, 0, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        if (status.MPI_TAG == TERMINATE) {
+            std::cout << rank << " terminating..." << std::endl;
+            break; // konec vypoctu
+        }
 //        else if (status.MPI_TAG == tag_work) {
 //            // do the work
 //
@@ -56,12 +74,12 @@ void Worker::runSlave() {
 
 void Worker::sendWork(Graph & problem, int to) {
     int position = 0;
-    char * message = packer.packGraph(&problem);
+    char * message = packer->packGraph(&problem, rank);
     MPI_Send(message, position, MPI_PACKED, to, WORK_SHARE, comm);
     if (MPI_DEBUG) {
         std::stringstream str;
         str << rank << " sent work to " << to << std::endl;
-        Logger::log(&str);
+        Logger::log(&str, rank);
     }
 
     delete[] message;
@@ -70,12 +88,11 @@ void Worker::sendWork(Graph & problem, int to) {
 Graph * Worker::receiveWork(int source) {
     char * workBuffer = new char[BUFFER_SIZE];
     MPI_Recv(workBuffer, BUFFER_SIZE, MPI_PACKED, source, WORK_SHARE, comm, MPI_STATUS_IGNORE);
-    if (MPI_DEBUG) { std::stringstream str; str << rank << " RECEIVED work from " << source << std::endl; Logger::log(&str); }
-    Graph * graph = packer.unpackGraph(workBuffer);
+    if (MPI_DEBUG) { std::stringstream str; str << rank << " received work from " << source << std::endl; Logger::log(&str, rank); }
+    Graph * graph = packer->unpackGraph(workBuffer, rank);
 
     if (MPI_DEBUG) {
-        Logger::logLn("received graph: ");
-        //printGraph(graph);
+        std::stringstream str; str << "received graph of size: " << graph->getSize() << std::endl; Logger::log(&str, rank);
     }
 
     return graph;

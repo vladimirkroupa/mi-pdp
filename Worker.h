@@ -8,7 +8,7 @@
 #define WORK_SHARE 1
 #define TERMINATE 2
 
-#define MPI_DEBUG false
+#define MPI_DEBUG true
 
 class Worker {
 public:
@@ -23,12 +23,14 @@ private:
     void runSlave();
 
     void sendWork(Graph &problem, int to);
-    Graph * Worker::receiveWork(int source);
+    Graph * receiveWork(int source);
+
+    Graph * _problem;
 
     int rank;
     int commSize;
     MPI_Comm comm;
-    Packer packer;
+    Packer * packer;
 };
 
 

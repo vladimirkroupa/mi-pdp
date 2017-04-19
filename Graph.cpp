@@ -20,6 +20,12 @@ Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
     }
 }
 
+Graph::Graph(AdjacencyMatrix * adjacencyMatrix) {
+    matrixSize = adjacencyMatrix -> size() - 1;
+    edgeCount = 0;
+    this->adjacencyMatrix = adjacencyMatrix;
+}
+
 Graph::~Graph() {
     delete adjacencyMatrix;
 }

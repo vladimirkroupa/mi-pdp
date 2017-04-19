@@ -5,18 +5,17 @@
 
 using namespace std;
 
-int Logger::rank;
 bool Logger::TO_FILE = true;
 
-void Logger::log(stringstream * ss) {
-    Logger::log(ss->str());
+void Logger::log(stringstream * ss, int rank) {
+    Logger::log(ss->str(), rank);
 }
 
-void Logger::log(string s) {
+void Logger::log(string s, int rank) {
     if (TO_FILE) {
         ofstream file;
         stringstream name;
-        name << "node" << Logger::rank << ".txt";
+        name << "node" << rank << ".txt";
         const string tmp = name.str();
         const char * cstr = tmp.c_str();
         file.open(cstr, ios::out | ios::ate | ios::app);
@@ -27,18 +26,14 @@ void Logger::log(string s) {
     }
 }
 
-void Logger::logLn(string s) {
+void Logger::logLn(string s, int rank) {
     stringstream ss;
     ss << s << endl;
-    Logger::log(&ss);
+    Logger::log(&ss, rank);
 }
 
-void Logger::ln() {
+void Logger::ln(int rank) {
     stringstream ss;
     ss << endl;
-    Logger::log(&ss);
-}
-
-void Logger::setRank(int _rank) {
-    Logger::rank = _rank;
+    Logger::log(&ss, rank);
 }
