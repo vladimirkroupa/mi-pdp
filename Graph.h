@@ -2,6 +2,7 @@
 #define MI_PDP_CPP_GRAPH_H
 
 #include <vector>
+#include <ostream>
 #include "AdjacencyMatrix.h"
 
 class Graph {
@@ -19,7 +20,7 @@ public:
     void removeNextEdge();
 
     std::vector<int> getAdjacentNodes(int node) const;
-    //friend std::ostream & operator <<(std::ostream & os, const Graph & graph);
+    friend std::ostream & operator <<(std::ostream & os, const Graph & graph);
     AdjacencyMatrix * _getMatrix() const;
 protected:
     void checkNodeExists(int node) const;

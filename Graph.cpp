@@ -22,7 +22,13 @@ Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
 
 Graph::Graph(AdjacencyMatrix * adjacencyMatrix) {
     matrixSize = adjacencyMatrix -> size() - 1;
-    edgeCount = 0;
+    int _edgeCount = 0;
+    for (int i = 0; i < adjacencyMatrix -> size(); i++) {
+        if (adjacencyMatrix->_getArray()[i]) {
+            _edgeCount++;
+        }
+    }
+    edgeCount = _edgeCount;
     this->adjacencyMatrix = adjacencyMatrix;
 }
 
@@ -111,4 +117,15 @@ void Graph::checkNodeExists(int node) const {
 
 AdjacencyMatrix * Graph::_getMatrix() const {
     return adjacencyMatrix;
+}
+
+std::ostream &operator<<(std::ostream & os, const Graph & graph) {
+    os << "edge count: " << graph.getEdgeCount() << std::endl;
+
+    os << "matrix size: " << graph._getMatrix()->size() << std::endl;
+
+    os << "adjacency matrix: ";
+    os << *graph._getMatrix() << std::endl;
+
+    return os;
 }

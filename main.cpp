@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    std::cout << "input graph: " << std::endl << *graph << std::endl;
+
     Worker w = Worker(*graph, threads);
     w.run();
 

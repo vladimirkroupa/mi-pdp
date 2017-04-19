@@ -64,9 +64,14 @@ void Worker::runSlave() {
 }
 
 int Worker::solve(Graph &problem) {
+
+    std::cout << problem << std::endl;
+
     Solver solver(problem, 2);
     solver.solve();
     Graph *solution = solver.getSolution();
+
+    std::cout << "got solution";
 
     int result;
     if (solution != NULL) {

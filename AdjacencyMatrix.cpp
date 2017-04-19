@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include "AdjacencyMatrix.h"
 
 AdjacencyMatrix::AdjacencyMatrix(int size) {
@@ -68,4 +69,13 @@ bool * AdjacencyMatrix::_getArray() {
 
 int AdjacencyMatrix::_getArraySize() {
     return arraySize;
+}
+
+std::ostream &operator<<(std::ostream & os, const AdjacencyMatrix & matrix) {
+    os << "arraySize: " << matrix.arraySize << std::endl;
+    os << "elements: ";
+    for (int i = 0; i < matrix.arraySize; i++) {
+        os << matrix.flatArray[i] << " ";
+    }
+    return os;
 }
