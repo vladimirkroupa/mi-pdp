@@ -21,17 +21,32 @@ Worker::~Worker() {
 
 void Worker::run() {
     if (rank == 0) {
+
+        for (int i = 1; i <= _problem->getEdgeCount(); i++) {
+            Graph *nextG = new Graph(*_problem);
+            nextG->removeEdge(i);
+            _masterWork.push_back(nextG);
+        }
+
         runMaster();
     } else {
         runSlave();
     }
 }
 
+Graph *Worker::nextUnitOfWork() {
+    Graph * work = _masterWork.front();
+    _masterWork.pop_front();
+    return work;
+}
+
 void Worker::runMaster() {
     MPI_Status status;
     int message = -2;
     for (int dest = 1; dest < commSize; dest++) { // pro vsechny slave procesy
-        sendWork(*_problem, dest); // pocatecni distribuce prace
+        Graph * initialWork = nextUnitOfWork();
+        sendWork(*initialWork, dest); // pocatecni distribuce prace
+        std::cout << "remaining work: " << _masterWork.size() << std::endl;
     }
 
     int workingSlaves = commSize - 1;
@@ -39,14 +54,18 @@ void Worker::runMaster() {
         MPI_Recv(&message, 1, MPI_INT, MPI_ANY_SOURCE, DONE, MPI_COMM_WORLD, &status);
         int from = status.MPI_SOURCE;
         if (MPI_DEBUG) { std::stringstream str; str << "solution from "  << from << ": " << message << std::endl; Logger::log(&str, rank); }
-        if (false) { // FIXME if more work to be done
-            sendWork(*_problem, from); // FIXME get work
+        if (! _masterWork.empty()) { // if more work to be done
+            Graph * work = nextUnitOfWork();
+            sendWork(*work, from); // get work
         } else {
+            std::cout << "no more work" << std::endl;
             MPI_Send(&message, 0, MPI_INT, from, TERMINATE, MPI_COMM_WORLD);
             workingSlaves--;
         }
     }
 }
+
+
 
 void Worker::runSlave() {
     while (true) {

@@ -4,6 +4,7 @@
 #include "Graph.h"
 #include "Packer.h"
 #include <mpi/mpi.h>
+#include <deque>
 
 #define WORK_SHARE 1
 #define DONE 2
@@ -24,9 +25,11 @@ private:
     void runMaster();
     void runSlave();
 
+    Graph * nextUnitOfWork();
     void sendWork(Graph &problem, int to);
     Graph * receiveWork(int source, int * tag);
 
+    std::deque<Graph *> _masterWork;
     Graph * _problem;
 
     int rank;

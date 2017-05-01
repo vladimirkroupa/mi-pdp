@@ -35,7 +35,7 @@ void Solver::solve() {
 void Solver::doSolve(std::stack<Graph *> *stack) {
     # pragma omp parallel shared(stack) num_threads(threads)
     {
-        printf("thread %i ready...\n", omp_get_thread_num());
+//        printf("thread %i ready...\n", omp_get_thread_num());
         while (!stack->empty()) {
             Graph *g;
             # pragma omp critical
@@ -44,9 +44,13 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
                 stack->pop();
             }
 
-            # pragma omp task
-            solveState(stack, g);
-            # pragma omp taskwait
+            if (possiblyBetter(g)) {
+                # pragma omp task
+                solveState(stack, g);
+                # pragma omp taskwait
+            } else {
+                delete g;
+            }
         }
     }
 }
@@ -67,8 +71,7 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
         for (int i = 1; i <= g->getEdgeCount(); i++) {
             Graph *nextG = new Graph(*g);
             nextG->removeEdge(i);
-            if (nextG->getEdgeCount() > incumbentObjective ||
-                (incumbent == nullptr && g->getEdgeCount() == incumbentObjective)) {
+            if (possiblyBetter(nextG)) {
                 # pragma omp critical
                 stack->push(nextG);
             } else {
@@ -77,6 +80,11 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
         }
         delete g;
     }
+}
+
+bool Solver::possiblyBetter(Graph * graph) const {
+    return graph->getEdgeCount() > incumbentObjective ||
+            (incumbent == nullptr && graph->getEdgeCount() == incumbentObjective);
 }
 
 bool Solver::isBipartite(Graph &graph) const {
