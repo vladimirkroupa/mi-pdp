@@ -44,9 +44,13 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
                 stack->pop();
             }
 
-            # pragma omp task
-            solveState(stack, g);
-            # pragma omp taskwait
+            if (possiblyBetter(g)) {
+                # pragma omp task
+                solveState(stack, g);
+                # pragma omp taskwait
+            } else {
+                delete g;
+            }
         }
     }
 }
