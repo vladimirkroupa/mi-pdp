@@ -3,5 +3,5 @@ project(mi_pdp_cpp)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp Graph.cpp Graph.h Bipartite.cpp Bipartite.h Color.h Solver.cpp Solver.h AdjacencyMatrix.cpp AdjacencyMatrix.h)
+set(SOURCE_FILES main.cpp Graph.cpp Graph.h Bipartite.cpp Bipartite.h Color.h Solver.cpp Solver.h AdjacencyMatrix.cpp AdjacencyMatrix.h Counters.h Counters.cpp)
 add_executable(mi_pdp_cpp ${SOURCE_FILES})

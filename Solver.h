@@ -2,11 +2,12 @@
 #define MI_PDP_CPP_SOLVER_H
 
 #include "Graph.h"
+#include "Counters.h"
 #include <deque>
 
 class Solver {
 public:
-    Solver(Graph &problem, int threads);
+    Solver(Graph *problem, int threads);
 
     virtual ~Solver();
 
@@ -15,19 +16,20 @@ public:
     void solve();
 
 private:
-    std::deque<Graph *> _deque1;
-    std::deque<Graph *> _deque2;
+    std::vector<Graph *> _deque;
     Graph * incumbent;
     int incumbentObjective;
     int printSkip = 0;
     int threads;
 
-    void doSolve(std::deque<Graph *> *workDeque, std::deque<Graph *> *auxDeque);
-    void solveState(std::deque<Graph *> * auxDeque, Graph *g);
+    void doSolve(std::vector<Graph *> *deque, int statesToSolve);
+    void solveState(std::vector<Graph *> * deque, Graph *g);
 
     bool possiblyBetter(Graph * graph) const;
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
+
+    Counters counters;
 };
 
 

@@ -1,6 +1,7 @@
 #include <clocale>
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 #include "Graph.h"
 
 Graph::Graph(int size) {
@@ -10,6 +11,7 @@ Graph::Graph(int size) {
 }
 
 Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
+    id = graph.id;
     for (int i = 1; i < graph.getSize(); i++) {
         for (int j = i + 1; j <= graph.getSize(); j++) {
             bool connected = graph.hasEdge(i, j);
@@ -67,6 +69,8 @@ void Graph::removeEdge(int node1, int node2) {
 }
 
 void Graph::removeEdge(int edgeNo) {
+    id.push_back(edgeNo);
+
     int skipped = 0;
     for (int i = 1; i <= getSize(); i++) {
         for (int j = i; j <= getSize(); j++) {
@@ -101,4 +105,15 @@ void Graph::checkNodeExists(int node) const {
     if (nodeIx < 0 || nodeIx > matrixSize - 1) {
         throw new std::out_of_range("No such node " + node);
     }
+}
+
+std::string Graph::getId() {
+    std::ostringstream out;
+    for (int i = 0; i < id.size(); i++) {
+        out << id[i];
+        if (i != id.size() - 1) {
+            out << "_";
+        }
+    }
+    return out.str();
 }

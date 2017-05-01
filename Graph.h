@@ -19,6 +19,8 @@ public:
 
     std::vector<int> getAdjacentNodes(int node) const;
     //friend std::ostream & operator <<(std::ostream & os, const Graph & graph);
+    std::vector<int> id;
+    std::string getId();
 protected:
     void checkNodeExists(int node) const;
 private:

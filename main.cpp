@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
         std::cout << "File does not exist." << std::endl;
         return -1;
     }
-    Solver solver(*graph, threads);
+    Solver solver(graph, threads);
     solver.solve();
     Graph *solution = solver.getSolution();
     if (solution != NULL) {
