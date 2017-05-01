@@ -2,6 +2,7 @@
 #define MI_PDP_CPP_GRAPH_H
 
 #include <vector>
+#include "AdjacencyMatrix.h"
 
 class Graph {
 public:
@@ -21,7 +22,7 @@ public:
 protected:
     void checkNodeExists(int node) const;
 private:
-    bool ** adjacencyMatrix;
+    AdjacencyMatrix * adjacencyMatrix;
     int matrixSize;
     int edgeCount;
     bool get(int node1, int node2) const;
