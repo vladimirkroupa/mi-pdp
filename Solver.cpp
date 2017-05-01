@@ -12,14 +12,7 @@ Solver::Solver(Graph *problem, int threads) {
     this->threads = threads;
     incumbent = nullptr;
     incumbentObjective = problem->getSize() - 1;
-    for (int i = 1; i <= problem->getEdgeCount(); i++) {
-        Graph *nextG = new Graph(*problem);
-        counters.graphCreated();
-        nextG->removeEdge(i);
-        _deque.push_back(nextG);
-    }
-    delete problem;
-    counters.graphDestroyed();
+    _deque.push_back(problem);
 }
 
 Solver::~Solver() {
