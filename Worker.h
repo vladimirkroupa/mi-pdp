@@ -32,6 +32,7 @@ private:
     std::deque<Graph *> _masterWork;
     Graph * _problem;
 
+    int threadsPerSolver;
     int rank;
     int commSize;
     MPI_Comm comm;

@@ -4,9 +4,11 @@
 #include "Graph.h"
 #include <stack>
 
+#define SOLVER_DEBUG true
+
 class Solver {
 public:
-    Solver(Graph &problem, int threads);
+    Solver(Graph &problem, int threads, int rank);
 
     virtual ~Solver();
 
@@ -27,6 +29,8 @@ private:
     bool possiblyBetter(Graph * graph) const;
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
+
+    int rank;
 };
 
 

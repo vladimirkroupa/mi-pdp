@@ -1,10 +1,17 @@
 #include <iostream>
-#include <omp.h>
 #include "Solver.h"
 #include "Bipartite.h"
+#include "Logger.h"
 
-Solver::Solver(Graph &problem, int threads) {
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#define omp_get_thread_num() 0
+#endif
+
+Solver::Solver(Graph &problem, int threads, int rank) {
     this->threads = threads;
+    this->rank = rank;
     incumbent = nullptr;
     incumbentObjective = problem.getSize() - 1;
     _stack.push(&problem);
@@ -57,14 +64,14 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
 
 void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
 
-    if (printSkip == 100000) {
-        printf("%i / stack size: %li / edge count: %i / max: %i\n", omp_get_thread_num(), stack->size(), g->getEdgeCount(), incumbentObjective);
+    if (printSkip == 10) {
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank << " / " << omp_get_thread_num() << " stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: " << incumbentObjective << std::endl; }
         printSkip = 0;
     }
     printSkip++;
 
     if (isBipartite(*g)) {
-        printf("!! found solution with edge count %i \n", g->getEdgeCount());
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank <<  " / " << omp_get_thread_num() << " found solution with edge count " << g->getEdgeCount() << std::endl; }
         # pragma omp critical
         setIncumbent(g);
     } else {
@@ -82,15 +89,15 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
     }
 }
 
+
 bool Solver::possiblyBetter(Graph * graph) const {
     return graph->getEdgeCount() > incumbentObjective ||
             (incumbent == nullptr && graph->getEdgeCount() == incumbentObjective);
 }
 
-bool Solver::isBipartite(Graph &graph) const {
+bool Solver::isBipartite(Graph & graph) const {
     Bipartite *bp = new Bipartite(graph);
     bool result = bp->isBipartite;
     delete bp;
     return result;
 }
-

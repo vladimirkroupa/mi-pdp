@@ -5,6 +5,7 @@
 #include <sstream>
 
 Worker::Worker(Graph &problem, int threadsPerSolver) {
+    this->threadsPerSolver = threadsPerSolver;
     packer = new Packer(problem.getSize());
 
     comm = MPI_COMM_WORLD;
@@ -85,7 +86,7 @@ void Worker::runSlave() {
 int Worker::solve(Graph &problem) {
 //    std::cout << problem << std::endl;
 
-    Solver solver(problem, 2);
+    Solver solver(problem, threadsPerSolver, rank);
     solver.solve();
     Graph *solution = solver.getSolution();
     if (solution != NULL) {
