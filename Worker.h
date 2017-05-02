@@ -32,6 +32,8 @@ private:
     std::deque<Graph *> _masterWork;
     Graph * _problem;
 
+    int bestSolution;
+
     int threadsPerSolver;
     int rank;
     int commSize;

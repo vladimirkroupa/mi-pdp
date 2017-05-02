@@ -21,6 +21,7 @@ Worker::~Worker() {
 }
 
 void Worker::run() {
+    bestSolution = -1;
     if (rank == 0) {
 
         for (int i = 1; i <= _problem->getEdgeCount(); i++) {
@@ -55,6 +56,9 @@ void Worker::runMaster() {
         MPI_Recv(&message, 1, MPI_INT, MPI_ANY_SOURCE, DONE, MPI_COMM_WORLD, &status);
         int from = status.MPI_SOURCE;
         if (MPI_DEBUG) { std::stringstream str; str << "solution from "  << from << ": " << message << std::endl; Logger::log(&str, rank); }
+        if (message > bestSolution) {
+            bestSolution = message;
+        }
         if (! _masterWork.empty()) { // if more work to be done
             Graph * work = nextUnitOfWork();
             sendWork(*work, from); // get work
@@ -65,6 +69,7 @@ void Worker::runMaster() {
             workingSlaves--;
         }
     }
+    std::cout << "Best solution: " << bestSolution << std::endl;
 }
 
 void Worker::runSlave() {
