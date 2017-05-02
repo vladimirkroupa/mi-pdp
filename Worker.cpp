@@ -21,6 +21,9 @@ Worker::~Worker() {
 }
 
 void Worker::run() {
+    double t1, t2;
+    t1 = MPI_Wtime();
+
     bestSolution = -1;
     if (rank == 0) {
 
@@ -34,6 +37,9 @@ void Worker::run() {
     } else {
         runSlave();
     }
+
+    t2 = MPI_Wtime();
+    printf("%d: Elapsed time is %f.\n", rank, t2 - t1);
 }
 
 Graph *Worker::nextUnitOfWork() {

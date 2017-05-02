@@ -43,7 +43,9 @@ Graph *createGraph(const char *filename) {
 
 
 int main(int argc, char **argv) {
-    MPI_Init(&argc, &argv);
+    int provided;
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
+
     Graph *graph;
     int threads;
     try {
