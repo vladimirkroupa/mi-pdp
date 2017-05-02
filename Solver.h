@@ -25,6 +25,8 @@ private:
 
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
+
+    bool possiblyBetter(Graph * graph) const;
 };
 
 
