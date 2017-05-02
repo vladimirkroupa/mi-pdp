@@ -4,7 +4,7 @@
 #include "Graph.h"
 #include <stack>
 
-#define SOLVER_DEBUG true
+#define SOLVER_DEBUG false
 
 class Solver {
 public:

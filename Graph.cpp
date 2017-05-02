@@ -23,14 +23,13 @@ Graph::Graph(const Graph& graph) : Graph(graph.getSize()) {
 }
 
 Graph::Graph(AdjacencyMatrix * adjacencyMatrix) {
-    matrixSize = adjacencyMatrix -> size() - 1;
-    int _edgeCount = 0;
-    for (int i = 0; i < adjacencyMatrix -> size(); i++) {
+    matrixSize = adjacencyMatrix->size() - 1;
+    edgeCount = 0;
+    for (int i = 0; i < adjacencyMatrix->_getArraySize(); i++) {
         if (adjacencyMatrix->_getArray()[i]) {
-            _edgeCount++;
+            edgeCount++;
         }
     }
-    edgeCount = _edgeCount;
     this->adjacencyMatrix = adjacencyMatrix;
 }
 

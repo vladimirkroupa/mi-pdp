@@ -30,6 +30,8 @@ char * Packer::packGraph(Graph * graph, int * size, int rank) {
     if (PACKER_DEBUG) { std::stringstream str; str << "adjacency matrix: "; for (int i = 0; i < matrixArraySize; i++) { str << matrixArray[i] << " "; } str << std::endl; Logger::log(&str, rank); }
     MPI_Pack(matrixArray, matrixArraySize, MPI_C_BOOL, buffer, BUFFER_SIZE, size, MPI_COMM_WORLD);
 
+    if (PACKER_DEBUG) { std::stringstream str; str << "edge count is: " << graph->getEdgeCount() << std::endl; Logger::log(&str, rank); }
+
     int idSize = graph->id.size();
     MPI_Pack(&idSize, 1, MPI_INT, buffer, BUFFER_SIZE, size, MPI_COMM_WORLD);
 
@@ -74,6 +76,8 @@ Graph * Packer::unpackGraph(char * packed, int rank) {
 
     AdjacencyMatrix * adjacencyMatrix = new AdjacencyMatrix(matrixArray, matrixArraySize, emulatedSize);
     Graph * g = new Graph(adjacencyMatrix);
+
+    if (PACKER_DEBUG) { std::stringstream str; str << "edge count is: " << g->getEdgeCount() << std::endl; Logger::log(&str, rank); }
 
     for (int i = 0; i < idSize; i++) {
         g->id.push_back(id[i]);

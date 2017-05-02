@@ -49,6 +49,7 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
             {
                 g = stack->top();
                 stack->pop();
+                if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " about to solve " << g->getId() << std::endl; Logger::log(&str, rank); }
             }
 
             if (possiblyBetter(g)) {
@@ -56,22 +57,24 @@ void Solver::doSolve(std::stack<Graph *> *stack) {
                 solveState(stack, g);
                 # pragma omp taskwait
             } else {
+                if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " is ignoring " << g->getId() << std::endl; Logger::log(&str, rank); }
                 delete g;
             }
         }
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " stack is empty" << std::endl; Logger::log(&str, rank); }
     }
 }
 
 void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
 
-    if (printSkip == 10) {
-        if (SOLVER_DEBUG) { std::stringstream str; str << rank << " / " << omp_get_thread_num() << " stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: " << incumbentObjective << std::endl; }
+    if (printSkip == 10000) {
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: " << incumbentObjective << std::endl; Logger::log(&str, rank); }
         printSkip = 0;
     }
     printSkip++;
 
     if (isBipartite(*g)) {
-        if (SOLVER_DEBUG) { std::stringstream str; str << rank <<  " / " << omp_get_thread_num() << " found solution with edge count " << g->getEdgeCount() << std::endl; }
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank <<  "/" << omp_get_thread_num() << " found solution with edge count " << g->getEdgeCount() << std::endl; Logger::log(&str, rank); }
         # pragma omp critical
         setIncumbent(g);
     } else {
@@ -91,6 +94,7 @@ void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
 
 
 bool Solver::possiblyBetter(Graph * graph) const {
+    if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " checking possible solution: " << graph->getEdgeCount() << " ? " << incumbentObjective << std::endl; Logger::log(&str, rank); }
     return graph->getEdgeCount() > incumbentObjective ||
             (incumbent == nullptr && graph->getEdgeCount() == incumbentObjective);
 }
