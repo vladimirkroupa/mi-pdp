@@ -3,7 +3,7 @@
 
 #include "Graph.h"
 
-#define PACKER_DEBUG true
+#define PACKER_DEBUG false
 #define BUFFER_SIZE 200
 
 class Packer {

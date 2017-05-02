@@ -57,25 +57,24 @@ void Worker::runMaster() {
         if (! _masterWork.empty()) { // if more work to be done
             Graph * work = nextUnitOfWork();
             sendWork(*work, from); // get work
+            std::cout << "remaining work: " << _masterWork.size() << std::endl;
         } else {
-            std::cout << "no more work" << std::endl;
+            if (MPI_DEBUG) { std::stringstream str; str << rank << " has no more work, asking slaves to terminate..." << std::endl; Logger::log(&str, rank); }
             MPI_Send(&message, 0, MPI_INT, from, TERMINATE, MPI_COMM_WORLD);
             workingSlaves--;
         }
     }
 }
 
-
-
 void Worker::runSlave() {
     while (true) {
         int tag;
         Graph *g = receiveWork(0, &tag);
         if (tag == TERMINATE) {
-            std::cout << rank << " terminating..." << std::endl;
+            if (MPI_DEBUG) { std::stringstream str; str << rank << " is terminating..."  << std::endl; Logger::log(&str, rank); }
             break; // konec vypoctu
         } else if (tag == WORK_SHARE) {
-            std::cout << rank << " working..." << std::endl;
+            if (MPI_DEBUG) { std::stringstream str; str << rank << " received work, id: " << g->getId() << std::endl; Logger::log(&str, rank); }
             int solutionValue = solve(*g);
             if (MPI_DEBUG) { std::stringstream str; str << rank << " found solution with value "  << solutionValue << std::endl; Logger::log(&str, rank); }
             MPI_Send(&solutionValue, 1, MPI_INT, 0, DONE, comm);
@@ -90,10 +89,10 @@ int Worker::solve(Graph &problem) {
     solver.solve();
     Graph *solution = solver.getSolution();
     if (solution != NULL) {
-        std::cout << "Result: " << solution->getEdgeCount() << std::endl;
+        if (MPI_DEBUG) { std::stringstream str; str << rank << " found solution: " << solution->getEdgeCount() << std::endl; Logger::log(&str, rank); }
         return solution->getEdgeCount();
     } else {
-        std::cout << "No solution." << std::endl;
+        if (MPI_DEBUG) { std::stringstream str; str << rank << " hasn't found a solution..." << std::endl; Logger::log(&str, rank); }
         return -1;
     }
 }
@@ -102,7 +101,7 @@ void Worker::sendWork(Graph & problem, int to) {
     int size = 0;
     char * message = packer->packGraph(&problem, &size, rank);
     MPI_Send(message, size, MPI_PACKED, to, WORK_SHARE, comm);
-    if (MPI_DEBUG) { std::stringstream str; str << rank << " sent work to " << to << ", size: " << size << std::endl; Logger::log(&str, rank); }
+    if (MPI_DEBUG) { std::stringstream str; str << rank << " sent work to " << to << ", id: " << problem.getId() << std::endl; Logger::log(&str, rank); }
 
     delete[] message;
 }
@@ -114,7 +113,6 @@ Graph * Worker::receiveWork(int source, int * tag) {
     *tag = status.MPI_TAG;
     Graph * graph;
     if (*tag == WORK_SHARE) {
-        if (MPI_DEBUG) { std::stringstream str; str << rank << " received work from " << source << std::endl; Logger::log(&str, rank); }
         graph = packer->unpackGraph(workBuffer, rank);
     }
     return graph;

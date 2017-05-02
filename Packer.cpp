@@ -30,6 +30,12 @@ char * Packer::packGraph(Graph * graph, int * size, int rank) {
     if (PACKER_DEBUG) { std::stringstream str; str << "adjacency matrix: "; for (int i = 0; i < matrixArraySize; i++) { str << matrixArray[i] << " "; } str << std::endl; Logger::log(&str, rank); }
     MPI_Pack(matrixArray, matrixArraySize, MPI_C_BOOL, buffer, BUFFER_SIZE, size, MPI_COMM_WORLD);
 
+    int idSize = graph->id.size();
+    MPI_Pack(&idSize, 1, MPI_INT, buffer, BUFFER_SIZE, size, MPI_COMM_WORLD);
+
+    int * idArr = &(graph->id)[0];
+    MPI_Pack(idArr, idSize, MPI_INT, buffer, BUFFER_SIZE, size, MPI_COMM_WORLD);
+
     return buffer;
 }
 
@@ -60,6 +66,18 @@ Graph * Packer::unpackGraph(char * packed, int rank) {
         Logger::log(&str, rank);
     }
 
+    int idSize = 0;
+    MPI_Unpack(packed, BUFFER_SIZE, &position, &idSize, 1, MPI_INT, MPI_COMM_WORLD);
+
+    int * id = new int[idSize];
+    MPI_Unpack(packed, BUFFER_SIZE, &position, id, idSize, MPI_INT, MPI_COMM_WORLD);
+
     AdjacencyMatrix * adjacencyMatrix = new AdjacencyMatrix(matrixArray, matrixArraySize, emulatedSize);
-    return new Graph(adjacencyMatrix);
+    Graph * g = new Graph(adjacencyMatrix);
+
+    for (int i = 0; i < idSize; i++) {
+        g->id.push_back(id[i]);
+    }
+
+    return g;
 }
