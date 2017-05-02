@@ -9,12 +9,14 @@
 #define omp_get_thread_num() 0
 #endif
 
-Solver::Solver(Graph &problem, int threads, int rank) {
+#define SOLVER_DEBUG true
+
+Solver::Solver(Graph *problem, int threads, int rank) {
     this->threads = threads;
     this->rank = rank;
     incumbent = nullptr;
-    incumbentObjective = problem.getSize() - 1;
-    _stack.push(&problem);
+    incumbentObjective = problem->getSize() - 1;
+    _deque.push_back(problem);
 }
 
 Solver::~Solver() {
@@ -36,67 +38,63 @@ Graph *Solver::getSolution() const {
 }
 
 void Solver::solve() {
-    doSolve(&_stack);
-}
-
-void Solver::doSolve(std::stack<Graph *> *stack) {
-    # pragma omp parallel shared(stack) num_threads(threads)
-    {
-//        printf("thread %i ready...\n", omp_get_thread_num());
-        while (!stack->empty()) {
-            Graph *g;
-            # pragma omp critical
-            {
-                g = stack->top();
-                stack->pop();
-                if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " about to solve " << g->getId() << std::endl; Logger::log(&str, rank); }
-            }
-
-            if (possiblyBetter(g)) {
-                # pragma omp task
-                solveState(stack, g);
-                # pragma omp taskwait
-            } else {
-                if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " is ignoring " << g->getId() << std::endl; Logger::log(&str, rank); }
-                delete g;
-            }
-        }
-        if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " stack is empty" << std::endl; Logger::log(&str, rank); }
+    # pragma omp parallel num_threads(threads)
+    if (SOLVER_DEBUG) { std::stringstream str; str << "thread " << omp_get_thread_num() <<  "ready..." << std::endl; Logger::log(&str, rank); }
+    while (!_deque.empty()) {
+        doSolve(&_deque, 10000);
     }
 }
 
-void Solver::solveState(std::stack<Graph *> *stack, Graph *g) {
+void Solver::doSolve(std::vector<Graph *> *deque, int statesToSolve) {
+    workSteps = statesToSolve < deque->size() ? statesToSolve : deque->size();
+    #pragma omp parallel for
+    for (unsigned int i = 0; i < workSteps; i++) {
+        Graph *g = (*deque)[i];
+        //std::cout << "solving graph " << g->getId() << " " << std::endl;
+        if (possiblyBetter(g)) {
+            solveState(deque, g);
+        } else {
+            delete g;
+        }
+    }
+    deque->erase(deque->begin() + 0, deque->begin() + workSteps);
+}
 
-    if (printSkip == 10000) {
-        if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " stack size: " << stack->size() << " / edge count: " << g->getEdgeCount() << " / max: " << incumbentObjective << std::endl; Logger::log(&str, rank); }
+void Solver::solveState(std::vector<Graph *> *deque, Graph *g) {
+
+    if (printSkip == 100000) {
+        if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " stack size: " << deque->size() << " / edge count: " << g->getEdgeCount() << " / max: " << incumbentObjective << std::endl; Logger::log(&str, rank); }
         printSkip = 0;
     }
     printSkip++;
 
     if (isBipartite(*g)) {
-        if (SOLVER_DEBUG) { std::stringstream str; str << rank <<  "/" << omp_get_thread_num() << " found solution with edge count " << g->getEdgeCount() << std::endl; Logger::log(&str, rank); }
-        # pragma omp critical
-        setIncumbent(g);
+        if (g->getEdgeCount() > incumbentObjective) {
+            if (SOLVER_DEBUG) { std::stringstream str; str << rank <<  "/" << omp_get_thread_num() << " found solution with edge count " << g->getEdgeCount() << std::endl; Logger::log(&str, rank); }
+            # pragma omp critical
+            setIncumbent(g);
+        } else {
+            delete g;
+        }
     } else {
         for (int i = 1; i <= g->getEdgeCount(); i++) {
             Graph *nextG = new Graph(*g);
             nextG->removeEdge(i);
             if (possiblyBetter(nextG)) {
                 # pragma omp critical
-                stack->push(nextG);
+                deque->insert(deque->begin() + workSteps, nextG);
             } else {
                 delete nextG;
+
             }
         }
         delete g;
     }
 }
 
-
 bool Solver::possiblyBetter(Graph * graph) const {
-    if (SOLVER_DEBUG) { std::stringstream str; str << rank << "/" << omp_get_thread_num() << " checking possible solution: " << graph->getEdgeCount() << " ? " << incumbentObjective << std::endl; Logger::log(&str, rank); }
     return graph->getEdgeCount() > incumbentObjective ||
-            (incumbent == nullptr && graph->getEdgeCount() == incumbentObjective);
+           (incumbent == nullptr && graph->getEdgeCount() == incumbentObjective);
 }
 
 bool Solver::isBipartite(Graph & graph) const {

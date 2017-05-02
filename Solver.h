@@ -2,13 +2,11 @@
 #define MI_PDP_CPP_SOLVER_H
 
 #include "Graph.h"
-#include <stack>
-
-#define SOLVER_DEBUG false
+#include <deque>
 
 class Solver {
 public:
-    Solver(Graph &problem, int threads, int rank);
+    Solver(Graph *problem, int threads, int rank);
 
     virtual ~Solver();
 
@@ -17,19 +15,20 @@ public:
     void solve();
 
 private:
-    std::stack<Graph *> _stack;
+    std::vector<Graph *> _deque;
     Graph * incumbent;
     int incumbentObjective;
     int printSkip = 0;
     int threads;
 
-    void doSolve(std::stack<Graph *> * stack);
-    void solveState(std::stack<Graph *> * stack, Graph *g);
+    void doSolve(std::vector<Graph *> *deque, int statesToSolve);
+    void solveState(std::vector<Graph *> * deque, Graph *g);
 
     bool possiblyBetter(Graph * graph) const;
     bool isBipartite(Graph & graph) const;
     void setIncumbent(Graph * graph);
 
+    unsigned long workSteps;
     int rank;
 };
 

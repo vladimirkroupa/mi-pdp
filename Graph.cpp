@@ -138,7 +138,7 @@ std::string Graph::getId() {
     if (id.empty()) {
         return "initial";
     }
-    for (int i = 0; i < id.size(); i++) {
+    for (unsigned int i = 0; i < id.size(); i++) {
         out << id[i];
         if (i != id.size() - 1) {
             out << "_";
